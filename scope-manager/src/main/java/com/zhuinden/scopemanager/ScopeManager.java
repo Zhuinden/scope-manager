@@ -95,44 +95,49 @@ public class ScopeManager {
                 activeKeys.add(newKey);
             }
             if(!isFromCompositeKey) {
-                buildServices(states, newKey);
+                buildServices(newKey);
             }
         }
     }
 
-    private void buildServices(StateBundle states, Object newKey) {
+    private void buildServices(Object newKey) {
         if(!serviceTree.hasNodeWithKey(newKey)) {
             ServiceTree.Node node;
             if(!(newKey instanceof Child)) {
                 node = serviceTree.createRootNode(newKey);
             } else {
-                node = serviceTree.createChildNode(serviceTree.getNode(((Child) newKey).parent()), newKey);
+                Object parentKey = ((Child) newKey).parent();
+                if(!serviceTree.hasNodeWithKey(parentKey)) {
+                    buildServices(parentKey);
+                }
+                node = serviceTree.createChildNode(serviceTree.getNode(parentKey), newKey);
             }
-            buildServicesForKey(states, newKey, node);
+            buildServicesForKey(newKey, node);
         }
     }
 
-    private void buildServicesForKey(StateBundle states, Object newKey, ServiceTree.Node node) {
+    private void buildServicesForKey(Object newKey, ServiceTree.Node node) {
         if(newKey instanceof ScopeKey) {
             ((ScopeKey) newKey).bindServices(node);
         }
-        restoreServiceStateForKey(states, newKey, node);
+        restoreServiceStateForKey(node);
         if(newKey instanceof Composite) {
             for(Object nestedKey : ((Composite) newKey).keys()) {
                 ServiceTree.Node nestedNode = serviceTree.createChildNode(node, nestedKey);
-                buildServicesForKey(states, nestedKey, nestedNode);
+                buildServicesForKey(nestedKey, nestedNode);
             }
         }
         if(newKey instanceof NestedKey) {
             Backstack nestedStack = serviceTree.getNode(newKey).<BackstackManager>getService(NestedKey.NESTED_STACK).getBackstack();
             for(Object childKey : nestedStack.getInitialParameters()) {
-                buildServices(states, childKey);
+                buildServices(childKey);
             }
         }
     }
 
-    private void restoreServiceStateForKey(StateBundle states, Object key, ServiceTree.Node node) {
-        StateBundle keyBundle = states.getParcelable(key.toString());
+    private void restoreServiceStateForKey(ServiceTree.Node node) {
+        StateBundle states = serviceTree.getRootService(SERVICE_STATES);
+        StateBundle keyBundle = states.getParcelable(node.getKey().toString());
         if(keyBundle != null) {
             List<ServiceTree.Node.Entry> entries = node.getBoundServices();
             for(ServiceTree.Node.Entry entry : entries) {
