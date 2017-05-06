@@ -259,10 +259,10 @@ public class ScopeManagerTest {
         assertThat(serviceTree.hasNodeWithKey(i)).isFalse();
         assertThat(serviceTree.hasNodeWithKey(b)).isFalse();
         assertThat(serviceTree.hasNodeWithKey(f)).isTrue();
-        assertThat(serviceTree.hasNodeWithKey(e)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(d)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(a)).isTrue();
         assertThat(serviceTree.hasNodeWithKey(e)).isTrue();
         assertThat(serviceTree.hasNodeWithKey(g)).isTrue();
-        assertThat(serviceTree.hasNodeWithKey(a)).isTrue();
 
     }
 }
