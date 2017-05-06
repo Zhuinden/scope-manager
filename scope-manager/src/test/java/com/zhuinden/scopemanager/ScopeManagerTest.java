@@ -20,6 +20,7 @@ import com.zhuinden.scopemanager.testkeys.Q;
 import com.zhuinden.scopemanager.testkeys.R;
 import com.zhuinden.servicetree.ServiceTree;
 import com.zhuinden.simplestack.Backstack;
+import com.zhuinden.simplestack.HistoryBuilder;
 import com.zhuinden.simplestack.StateChange;
 import com.zhuinden.simplestack.StateChanger;
 
@@ -241,5 +242,27 @@ public class ScopeManagerTest {
         backstack.setStateChanger(stateChanger, Backstack.INITIALIZE);
         ServiceTree serviceTree = scopeManager.getServiceTree();
         assertThat(serviceTree.hasNodeWithKey(r)).isTrue();
+    }
+
+    @Test
+    public void goFromJToF() {
+        Backstack backstack = new Backstack(j);
+        backstack.setStateChanger(stateChanger, Backstack.INITIALIZE);
+        ServiceTree serviceTree = scopeManager.getServiceTree();
+        assertThat(serviceTree.hasNodeWithKey(j)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(i)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(b)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(f)).isFalse();
+
+        backstack.setHistory(HistoryBuilder.single(f), StateChange.REPLACE);
+        assertThat(serviceTree.hasNodeWithKey(j)).isFalse();
+        assertThat(serviceTree.hasNodeWithKey(i)).isFalse();
+        assertThat(serviceTree.hasNodeWithKey(b)).isFalse();
+        assertThat(serviceTree.hasNodeWithKey(f)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(e)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(e)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(g)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(a)).isTrue();
+
     }
 }
