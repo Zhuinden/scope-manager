@@ -72,6 +72,19 @@ public class ScopeManager {
 
     public void setupServices(StateChange stateChange) {
         final StateBundle states = serviceTree.getRootService(SERVICE_STATES);
+        for(Object previousKey : stateChange.getPreviousState()) {
+            if(!stateChange.getNewState().contains(previousKey)) {
+                activeKeys.remove(previousKey);
+            }
+        }
+        for(Object newKey : stateChange.getNewState()) {
+            activeKeys.remove(newKey);
+            if(newKey == stateChange.topNewState()) {
+                activeKeys.add(newKey);
+            }
+            buildServices(newKey);
+        }
+
         final Set<Object> keysToKeep = new LinkedHashSet<>();
         for(Object newKey : stateChange.getNewState()) {
             if(serviceTree.hasNodeWithKey(newKey)) {
@@ -93,18 +106,6 @@ public class ScopeManager {
                 }
             }
         });
-        for(Object previousKey : stateChange.getPreviousState()) {
-            if(!stateChange.getNewState().contains(previousKey)) {
-                activeKeys.remove(previousKey);
-            }
-        }
-        for(Object newKey : stateChange.getNewState()) {
-            activeKeys.remove(newKey);
-            if(newKey == stateChange.topNewState()) {
-                activeKeys.add(newKey);
-            }
-            buildServices(newKey);
-        }
     }
 
     private void buildServices(Object newKey) {
