@@ -25,7 +25,9 @@ import com.zhuinden.simplestack.StateChange;
 import com.zhuinden.statebundle.StateBundle;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings("ConstantConditions")
 public class ScopeManager {
@@ -69,24 +71,31 @@ public class ScopeManager {
     }
 
     public void setupServices(StateChange stateChange) {
-        setupServices(stateChange, false);
-    }
-
-    public void setupServices(StateChange stateChange, boolean isFromCompositeKey) {
         final StateBundle states = serviceTree.getRootService(SERVICE_STATES);
+        final Set<Object> keysToKeep = new LinkedHashSet<>();
+        for(Object newKey : stateChange.getNewState()) {
+            if(serviceTree.hasNodeWithKey(newKey)) {
+                ServiceTree.Node root = serviceTree.findRoot(serviceTree.getNode(newKey));
+                serviceTree.traverseSubtree(root, ServiceTree.Walk.PRE_ORDER, new ServiceTree.Walk() {
+                    @Override
+                    public void execute(@NonNull ServiceTree.Node node, @NonNull CancellationToken cancellationToken) {
+                        keysToKeep.add(node.getKey());
+                    }
+                });
+            }
+        }
+        serviceTree.traverseTree(ServiceTree.Walk.POST_ORDER, new ServiceTree.Walk() {
+            @Override
+            public void execute(@NonNull ServiceTree.Node node, @NonNull CancellationToken cancellationToken) {
+                if(!keysToKeep.contains(node.getKey())) {
+                    states.remove(node.getKey().toString());
+                    serviceTree.removeNodeAndChildren(node);
+                }
+            }
+        });
         for(Object previousKey : stateChange.getPreviousState()) {
             if(!stateChange.getNewState().contains(previousKey)) {
                 activeKeys.remove(previousKey);
-                if(!isFromCompositeKey) {
-                    ServiceTree.Node previousNode = serviceTree.getNode(previousKey);
-                    serviceTree.traverseSubtree(previousNode, ServiceTree.Walk.POST_ORDER, new ServiceTree.Walk() {
-                        @Override
-                        public void execute(@NonNull ServiceTree.Node node, @NonNull CancellationToken cancellationToken) {
-                            states.remove(node.getKey().toString());
-                        }
-                    });
-                    serviceTree.removeNodeAndChildren(previousNode);
-                }
             }
         }
         for(Object newKey : stateChange.getNewState()) {
@@ -94,9 +103,7 @@ public class ScopeManager {
             if(newKey == stateChange.topNewState()) {
                 activeKeys.add(newKey);
             }
-            if(!isFromCompositeKey) {
-                buildServices(newKey);
-            }
+            buildServices(newKey);
         }
     }
 
