@@ -159,9 +159,6 @@ public class ScopeManager {
         serviceTree.traverseChain(serviceTree.getNode(lastKey), new ServiceTree.Walk() {
             @Override
             public void execute(@NonNull ServiceTree.Node node, @NonNull CancellationToken cancellationToken) {
-                if(node.getParent() == null) {
-                    return;
-                }
                 Object _key = node.getKey();
                 if(_key instanceof NestedKey) { // ROOT is defined by Activity's TAG
                     NestedKey key = (NestedKey) _key;
