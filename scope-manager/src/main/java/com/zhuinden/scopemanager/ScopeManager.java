@@ -27,6 +27,7 @@ import com.zhuinden.statebundle.StateBundle;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("ConstantConditions")
 public class ScopeManager {
     public interface Child {
         Object parent();
@@ -78,14 +79,12 @@ public class ScopeManager {
                 activeKeys.remove(previousKey);
                 if(!isFromCompositeKey) {
                     ServiceTree.Node previousNode = serviceTree.getNode(previousKey);
-                    if(states != null) {
-                        serviceTree.traverseSubtree(previousNode, ServiceTree.Walk.POST_ORDER, new ServiceTree.Walk() {
-                            @Override
-                            public void execute(@NonNull ServiceTree.Node node, @NonNull CancellationToken cancellationToken) {
-                                states.remove(node.getKey().toString());
-                            }
-                        });
-                    }
+                    serviceTree.traverseSubtree(previousNode, ServiceTree.Walk.POST_ORDER, new ServiceTree.Walk() {
+                        @Override
+                        public void execute(@NonNull ServiceTree.Node node, @NonNull CancellationToken cancellationToken) {
+                            states.remove(node.getKey().toString());
+                        }
+                    });
                     serviceTree.removeNodeAndChildren(previousNode);
                 }
             }
@@ -133,14 +132,12 @@ public class ScopeManager {
     }
 
     private void restoreServiceStateForKey(StateBundle states, Object key, ServiceTree.Node node) {
-        if(states != null) {
-            StateBundle keyBundle = states.getParcelable(key.toString());
-            if(keyBundle != null) {
-                List<ServiceTree.Node.Entry> entries = node.getBoundServices();
-                for(ServiceTree.Node.Entry entry : entries) {
-                    if(entry.getService() instanceof Bundleable) {
-                        ((Bundleable) entry.getService()).fromBundle(keyBundle.<StateBundle>getParcelable(entry.getName()));
-                    }
+        StateBundle keyBundle = states.getParcelable(key.toString());
+        if(keyBundle != null) {
+            List<ServiceTree.Node.Entry> entries = node.getBoundServices();
+            for(ServiceTree.Node.Entry entry : entries) {
+                if(entry.getService() instanceof Bundleable) {
+                    ((Bundleable) entry.getService()).fromBundle(keyBundle.<StateBundle>getParcelable(entry.getName()));
                 }
             }
         }
