@@ -130,15 +130,9 @@ public class ScopeManager {
         }
         restoreServiceStateForKey(node);
         if(newKey instanceof Composite) {
-            for(Object nestedKey : ((Composite) newKey).keys()) {
-                ServiceTree.Node nestedNode = serviceTree.createChildNode(node, nestedKey);
-                buildServicesForKey(nestedKey, nestedNode);
-            }
-        }
-        if(newKey instanceof NestedKey) {
-            Backstack nestedStack = serviceTree.getNode(newKey).<BackstackManager>getService(NestedKey.NESTED_STACK).getBackstack();
-            for(Object childKey : nestedStack.getInitialParameters()) {
-                buildServices(childKey);
+            for(Object childOfCompositeKey : ((Composite) newKey).keys()) {
+                ServiceTree.Node nestedNode = serviceTree.createChildNode(node, childOfCompositeKey);
+                buildServicesForKey(childOfCompositeKey, nestedNode);
             }
         }
     }
