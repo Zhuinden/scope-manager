@@ -263,6 +263,23 @@ public class ScopeManagerTest {
         assertThat(serviceTree.hasNodeWithKey(a)).isTrue();
         assertThat(serviceTree.hasNodeWithKey(e)).isTrue();
         assertThat(serviceTree.hasNodeWithKey(g)).isTrue();
+    }
 
+    @Test
+    public void ABCandNestedKandNestedLM() {
+        Backstack rootStack = new Backstack(a, b, c);
+        Backstack nestedStack1 = new Backstack(k);
+        Backstack nestedStack2 = new Backstack(l, m);
+        rootStack.setStateChanger(stateChanger, Backstack.INITIALIZE);
+        nestedStack1.setStateChanger(stateChanger, Backstack.INITIALIZE);
+        nestedStack2.setStateChanger(stateChanger, Backstack.INITIALIZE);
+        ServiceTree serviceTree = scopeManager.getServiceTree();
+        assertThat(serviceTree.hasNodeWithKey(a)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(b)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(c)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(k)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(l)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(m)).isTrue();
+        assertThat(serviceTree.hasNodeWithKey(n)).isTrue();
     }
 }
